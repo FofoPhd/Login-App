@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -19,9 +23,3 @@ jobs:
           test -f Index.html
           test -f Script.js
           test -f Style.css
-          permissions:
-  contents: read
-  security-events: write
-          permissions:
-  contents: read
-          
