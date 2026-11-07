@@ -21,4 +21,7 @@ jobs:
           test -f Style.css
           permissions:
   contents: read
+  security-events: write
+          permissions:
+  contents: read
           
