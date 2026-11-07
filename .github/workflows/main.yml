@@ -16,6 +16,6 @@ jobs:
 
       - name: Check project files
         run: |
-          test -f index.html
+          test -f Index.html
           test -f Script.js
           test -f Style.css
