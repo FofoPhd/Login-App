@@ -19,3 +19,6 @@ jobs:
           test -f Index.html
           test -f Script.js
           test -f Style.css
+          permissions:
+  contents: read
+          
