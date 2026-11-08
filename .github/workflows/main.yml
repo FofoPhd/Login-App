@@ -43,3 +43,16 @@ jobs:
           context: .
           push: true
           tags: ghcr.io/fofophd/login-app:latest
+
+      - name: Pull Docker Image
+        run: docker pull ghcr.io/fofophd/login-app:latest
+
+      - name: Run Docker Container
+        run: |
+          docker run -d --name login-app-test -p 8080:80 ghcr.io/fofophd/login-app:latest
+          sleep 3
+          curl --fail http://localhost:8080
+
+      - name: Stop Docker Container
+        if: always()
+        run: docker stop login-app-test || true
