@@ -1,17 +1,86 @@
+name: Login App CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions: {}
+
+jobs:
+  workflow-security:
+    name: Scan Workflow Security
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run Zizmor Scan
+        uses: zizmorcore/zizmor-action@53290badfa369cb0bf7ad16342cb62c2fa47ac7b
+        with:
+          advanced-security: false
+
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Get the code
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Check project files
+        run: |
+          test -f Index.html
+          test -f Script.js
+          test -f Style.css
+          test -f Dockerfile
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
+
+      - name: Login to GHCR
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4.8.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/fofophd/login-app:latest
+
+      - name: Pull Docker Image
+        run: docker pull ghcr.io/fofophd/login-app:latest
+
       - name: Run Trivy Vulnerability Scan
-        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ghcr.io/fofophd/login-app:latest
-          format: json
-          output: trivy-results.json
+          format: table
           vuln-type: os,library
           severity: CRITICAL,HIGH,MEDIUM,LOW
           exit-code: '0'
 
-      - name: Upload Trivy Results
-        uses: actions/upload-artifact@v4
+      - name: Run Docker Container
+        run: |
+          docker run -d --name login-app-test -p 8080:80 ghcr.io/fofophd/login-app:latest
+          sleep 3
+          curl --fail http://localhost:8080
+
+      - name: Stop Docker Container
         if: always()
-        with:
-          name: trivy-vulnerability-report
-          path: trivy-results.json
-          if-no-files-found: warn
+        run: docker stop login-app-test || true
+يا دكتورة! أهو ده الملف الكامل! ❤️
