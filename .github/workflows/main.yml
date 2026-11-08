@@ -66,6 +66,15 @@ jobs:
       - name: Pull Docker Image
         run: docker pull ghcr.io/fofophd/login-app:latest
 
+      - name: Run Trivy Vulnerability Scan
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ghcr.io/fofophd/login-app:latest
+          format: table
+          vuln-type: os,library
+          severity: CRITICAL,HIGH,MEDIUM,LOW
+          exit-code: '0'
+
       - name: Run Docker Container
         run: |
           docker run -d --name login-app-test -p 8080:80 ghcr.io/fofophd/login-app:latest
