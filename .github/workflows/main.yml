@@ -74,12 +74,19 @@ jobs:
           severity: CRITICAL,HIGH,MEDIUM,LOW
           exit-code: '0'
 
+      - name: Create Docker Network
+        run: docker network create zapnet
+  
       - name: Run Docker Container
         run: |
-          docker run -d --name login-app-test -p 8080:80 ghcr.io/fofophd/login-app:latest
+          docker run -d --name login-app-test --network zapnet -p 8080:80 ghcr.io/fofophd/login-app:latest
           sleep 3
           curl --fail http://localhost:8080
 
+      - name: Run OWASP ZAP Baseline Scan
+        run: |
+          docker run --rm --network zapnet ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://login-app-test:80 -m 1 -I
+            
       - name: Stop Docker Container
         if: always()
         run: docker stop login-app-test || true
