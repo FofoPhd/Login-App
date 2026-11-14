@@ -90,3 +90,8 @@ jobs:
       - name: Stop Docker Container
         if: always()
         run: docker stop login-app-test || true
+
+       monitoring:
+        name: Prometheus and Grafana Monitoring
+        runs-on: ubuntu-latest
+        needs: check
