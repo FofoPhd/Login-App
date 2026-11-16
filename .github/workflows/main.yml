@@ -124,3 +124,41 @@ jobs:
             --timeout 10m
 
           kubectl get pods -n monitoring
+
+      - name: Deploy Login App on Kubernetes
+        env:
+          GHCR_USERNAME: ${{ github.actor }}
+          GHCR_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          kubectl create secret docker-registry ghcr-secret \
+            --docker-server=ghcr.io \
+            --docker-username="$GHCR_USERNAME" \
+            --docker-password="$GHCR_TOKEN" \
+            --docker-email="actions@github.com" \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          cat <<EOF | kubectl apply -f -
+          apiVersion: apps/v1
+          kind: Deployment
+          metadata:
+            name: login-app
+          spec:
+            replicas: 1
+            selector:
+              matchLabels:
+                app: login-app
+            template:
+              metadata:
+                labels:
+                  app: login-app
+              spec:
+                imagePullSecrets:
+                  - name: ghcr-secret
+                containers:
+                  - name: login-app
+                    image: ghcr.io/fofophd/login-app:latest
+                    ports:
+                      - containerPort: 80
+          EOF
+
+          kubectl rollout status deployment/login-app --timeout=180s
