@@ -162,3 +162,22 @@ jobs:
           EOF
 
           kubectl rollout status deployment/login-app --timeout=180s
+
+      - name: Create Kubernetes Service
+        run: |
+          cat <<EOF | kubectl apply -f -
+          apiVersion: v1
+          kind: Service
+          metadata:
+            name: login-app
+          spec:
+            selector:
+              app: login-app
+            ports:
+              - protocol: TCP
+                port: 80
+                targetPort: 80
+            type: ClusterIP
+          EOF
+
+          kubectl get service login-app
