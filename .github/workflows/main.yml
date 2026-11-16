@@ -107,3 +107,17 @@ jobs:
 
       - name: Verify Helm Installation
         run: helm version
+
+      - name: Install Prometheus and Grafana
+        run: |
+          helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+          helm repo update
+
+          helm upgrade --install monitoring prometheus-community/kube-prometheus-stack \
+            --version 93.2.2 \
+            --namespace monitoring \
+            --create-namespace \
+            --wait \
+            --timeout 10m
+
+          kubectl get pods -n monitoring
