@@ -95,6 +95,9 @@ jobs:
     name: Prometheus and Grafana Monitoring
     runs-on: ubuntu-latest
     needs: check
+
+    permissions:
+      packages: read
     
     steps:
       - name: Create Kubernetes Test Cluster
