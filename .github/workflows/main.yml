@@ -181,3 +181,24 @@ jobs:
           EOF
 
           kubectl get service login-app
+
+      - name: Verify Login App
+        run: |
+          kubectl port-forward service/login-app 8080:80 > /tmp/login-app-port-forward.log 2>&1 &
+          PORT_FORWARD_PID=$!
+          trap 'kill "$PORT_FORWARD_PID" 2>/dev/null || true' EXIT
+
+          for attempt in {1..15}; do
+            if HTTP_STATUS=$(curl -fsS -o /tmp/login-app-response.html -w "%{http_code}" http://127.0.0.1:8080/); then
+              echo "HTTP Status: $HTTP_STATUS"
+              if [ "$HTTP_STATUS" = "200" ]; then
+                echo "Login App is responding successfully."
+                exit 0
+              fi
+            fi
+            sleep 2
+          done
+
+          echo "Login App did not return HTTP 200."
+          cat /tmp/login-app-port-forward.log
+          exit 1
